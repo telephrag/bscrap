@@ -7,9 +7,11 @@ import (
 )
 
 type TypicalPriceData struct {
-	Data                []TypicalPrice
-	SelectiveAverage    float64
-	SelectiveDispersion float64 // s^2
+	Data       []TypicalPrice
+	Mean       float64
+	Spread     float64 // s^2
+	TradeStart uint64  // Data[0].TradeStart
+	TradeEnd   uint64  // Data[l-1].TradeEnd
 }
 
 type TypicalPrice struct {
@@ -63,16 +65,20 @@ func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
 
 		// slower due to multiple divisions
 		// but reduces chances of overflow error
-		tpd.SelectiveAverage += processed.Price / count
+		tpd.Mean += processed.Price / count
 
 		selectiveAverageSquare += processed.Price * processed.Price / count
 	}
 
 	// M(x^2) - M^2(x), M() -- expected value
-	tpd.SelectiveDispersion = (selectiveAverageSquare - tpd.SelectiveAverage*tpd.SelectiveAverage)
+	tpd.Spread = (selectiveAverageSquare - tpd.Mean*tpd.Mean)
 	if count > 1 { // idk who would want to calc dispersion for such a small sample size
-		tpd.SelectiveDispersion *= count / (count - 1) // unbiasing dispersion
+		ub := count / (count - 1) // unbiasing dispersion
+		tpd.Spread *= ub
 	}
+
+	tpd.TradeStart = tpd.Data[0].TradeStart
+	tpd.TradeEnd = tpd.Data[len(tpd.Data)-1].TradeEnd
 
 	return tpd
 }

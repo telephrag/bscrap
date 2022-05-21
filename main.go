@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,7 +14,8 @@ import (
 )
 
 func main() {
-	url := "https://api.binance.com/api/v3/klines?symbol=ZECUSDT&interval=1h&limit=10&startTime=1653001200000"
+	// url := "https://api.binance.com/api/v3/klines?symbol=ZECUSDT&interval=1h&limit=10&startTime=1653001200000"
+	url := "https://api.binance.com/api/v3/klines?symbol=ZECUSDT&interval=1d&limit=30&startTime=1650000000000"
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -33,8 +35,8 @@ func main() {
 
 	typicalPriceIntervalData := candleStickData.ProcessCandleStickData()
 	fmt.Println(typicalPriceIntervalData.Data)
-	fmt.Println(typicalPriceIntervalData.SelectiveAverage)
-	fmt.Println(typicalPriceIntervalData.SelectiveDispersion)
+	fmt.Println(typicalPriceIntervalData.Mean)
+	fmt.Println(math.Sqrt(typicalPriceIntervalData.Spread))
 
 	interupt := make(chan os.Signal, 1)
 	signal.Notify(interupt, syscall.SIGTERM, syscall.SIGINT)
