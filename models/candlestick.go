@@ -1,11 +1,46 @@
 package models
 
 import (
+	"bscrap/config"
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
+	"net/http"
 )
 
 type CandleStickData struct {
-	Data []CandleStick
+	Symbol string
+	Data   []CandleStick
+}
+
+// endTime shall be ignored for now
+// startTime and endTime are passed in milliseconds (how it's on Binance)
+func GetCandleStickData(symbol, interval string, limit int, startTime, endTime uint64) *CandleStickData {
+	uri := NewURI(config.API_URL, "https").Proceed("klines")
+	uri.Symbol(symbol).Interval(interval).Limit(limit).StartTime(startTime)
+
+	uriStr := uri.Finalize()
+	fmt.Println(uriStr)
+
+	resp, err := http.Get(uriStr)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer resp.Body.Close()
+
+	content, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	var candleStickData CandleStickData
+	if err = json.Unmarshal(content, &candleStickData.Data); err != nil {
+		log.Fatal(err)
+	}
+	candleStickData.Symbol = symbol
+
+	return &candleStickData
 }
 
 type CandleStick struct {

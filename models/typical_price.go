@@ -6,14 +6,6 @@ import (
 	"strconv"
 )
 
-type TypicalPriceData struct {
-	Data       []TypicalPrice
-	Mean       float64
-	Spread     float64 // s^2
-	TradeStart uint64  // Data[0].TradeStart
-	TradeEnd   uint64  // Data[l-1].TradeEnd
-}
-
 type TypicalPrice struct {
 	TradeStart uint64
 	TradeEnd   uint64
@@ -48,13 +40,24 @@ func ProcessCandleStick(cs *CandleStick) (*TypicalPrice, error) {
 	}, nil
 }
 
+type TypicalPriceData struct {
+	Symbol     string
+	Data       []TypicalPrice
+	Mean       float64
+	Spread     float64 // s^2
+	TradeStart uint64  // Data[0].TradeStart
+	TradeEnd   uint64  // Data[l-1].TradeEnd
+}
+
 func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
 	tpd := &TypicalPriceData{}
+
+	tpd.Symbol = csd.Symbol
+
 	count := float64(len(csd.Data))
 	tpd.Data = make([]TypicalPrice, len(csd.Data))
 
 	selectiveAverageSquare := 0.0
-
 	for i, interval := range csd.Data {
 		processed, err := ProcessCandleStick(&interval)
 		if err != nil {
