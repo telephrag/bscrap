@@ -2,8 +2,8 @@ package models
 
 import (
 	"bscrap/config"
+	"bscrap/util"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,17 +11,17 @@ import (
 
 type CandleStickData struct {
 	Symbol string
-	Data   []CandleStick
+	Data   []candleStick
 }
 
-// endTime shall be ignored for now
 // startTime and endTime are passed in milliseconds (how it's on Binance)
 func GetCandleStickData(symbol, interval string, limit int, startTime, endTime uint64) *CandleStickData {
-	uri := NewURI(config.API_URL, "https").Proceed("klines")
-	uri.Symbol(symbol).Interval(interval).Limit(limit).StartTime(startTime)
-
-	uriStr := uri.Finalize()
-	fmt.Println(uriStr)
+	uri := util.NewURI(config.API_URL, "https").Proceed("klines")
+	uri.Symbol(symbol).Interval(interval).Limit(limit).Timeframe(startTime, endTime)
+	uriStr, err := uri.String()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	resp, err := http.Get(uriStr)
 	if err != nil {
@@ -43,7 +43,7 @@ func GetCandleStickData(symbol, interval string, limit int, startTime, endTime u
 	return &candleStickData
 }
 
-type CandleStick struct {
+type candleStick struct {
 	TradeStart uint64
 	PriceOpen  string
 	PriceHigh  string
@@ -53,7 +53,7 @@ type CandleStick struct {
 	TradeEnd   uint64
 }
 
-func (cs *CandleStick) UnmarshalJSON(rawData []byte) error {
+func (cs *candleStick) UnmarshalJSON(rawData []byte) error {
 	data := []interface{}{
 		&cs.TradeStart,
 		&cs.PriceOpen,

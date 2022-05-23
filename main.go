@@ -9,9 +9,9 @@ import (
 )
 
 func main() {
-	// url := "https://api.binance.com/api/v3/klines?symbol=ZECUSDT&interval=1d&limit=30&startTime=1650000000000"
+	// https://api.binance.com/api/v3/klines?symbol=ZECUSDT&interval=1w&limit=50&startTime=1621728000000&endTime=1653264000000
 
-	candleStickData := models.GetCandleStickData("ZECUSDT", "1d", 30, 1650000000000, 0)
+	candleStickData := models.GetCandleStickData("ZECUSDT", "1w", 50, 1621728000000, 1653264000000)
 
 	typicalPriceIntervalData := candleStickData.ProcessCandleStickData()
 	fmt.Println(typicalPriceIntervalData)

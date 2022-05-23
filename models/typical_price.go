@@ -6,43 +6,43 @@ import (
 	"strconv"
 )
 
-type TypicalPrice struct {
+type typicalPrice struct {
 	TradeStart uint64
 	TradeEnd   uint64
 	Price      float64
 }
 
-func ProcessCandleStick(cs *CandleStick) (*TypicalPrice, error) {
-	typicalPrice := 0.0 // (low + high + close) / 3
+func processCandleStick(cs *candleStick) (*typicalPrice, error) {
+	tp := 0.0 // (low + high + close) / 3
 	temp, err := strconv.ParseFloat(cs.PriceLow, 64)
 	if err != nil {
 		return nil, fmt.Errorf("i.PriceLow: %w", err)
 	}
-	typicalPrice += temp
+	tp += temp
 
 	temp, err = strconv.ParseFloat(cs.PriceHigh, 64)
 	if err != nil {
 		return nil, fmt.Errorf("i.PriceHigh: %w", err)
 	}
-	typicalPrice += temp
+	tp += temp
 
 	temp, err = strconv.ParseFloat(cs.PriceClose, 64)
 	if err != nil {
 		return nil, fmt.Errorf("i.PriceClose: %w", err)
 	}
-	typicalPrice += temp
-	typicalPrice /= 3.0
+	tp += temp
+	tp /= 3.0
 
-	return &TypicalPrice{
+	return &typicalPrice{
 		TradeStart: cs.TradeStart,
 		TradeEnd:   cs.TradeEnd,
-		Price:      typicalPrice,
+		Price:      tp,
 	}, nil
 }
 
 type TypicalPriceData struct {
 	Symbol     string
-	Data       []TypicalPrice
+	Data       []typicalPrice
 	Mean       float64
 	Spread     float64 // s^2
 	TradeStart uint64  // Data[0].TradeStart
@@ -55,11 +55,11 @@ func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
 	tpd.Symbol = csd.Symbol
 
 	count := float64(len(csd.Data))
-	tpd.Data = make([]TypicalPrice, len(csd.Data))
+	tpd.Data = make([]typicalPrice, len(csd.Data))
 
 	selectiveAverageSquare := 0.0
 	for i, interval := range csd.Data {
-		processed, err := ProcessCandleStick(&interval)
+		processed, err := processCandleStick(&interval)
 		if err != nil {
 			log.Panic(fmt.Errorf("id.Data[%d]: %w", i, err))
 		}
@@ -67,7 +67,7 @@ func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
 		tpd.Data[i] = *processed
 
 		// slower due to multiple divisions
-		// but reduces chances of overflow error
+		// but reduces chances of getting an overflow error
 		tpd.Mean += processed.Price / count
 
 		selectiveAverageSquare += processed.Price * processed.Price / count
