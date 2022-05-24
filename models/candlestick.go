@@ -4,6 +4,7 @@ import (
 	"bscrap/config"
 	"bscrap/util"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,23 +16,34 @@ type CandleStickData struct {
 }
 
 // startTime and endTime are passed in milliseconds (how it's on Binance)
-func GetCandleStickData(symbol, interval string, limit int, startTime, endTime uint64) *CandleStickData {
+func GetCandleStickData(symbol, interval string, limit int, startTime, endTime uint64) (*CandleStickData, error) {
+
 	uri := util.NewURI(config.API_URL, "https").Proceed("klines")
 	uri.Symbol(symbol).Interval(interval).Limit(limit).Timeframe(startTime, endTime)
 	uriStr, err := uri.String()
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 
 	resp, err := http.Get(uriStr)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	content, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
+	}
+
+	if resp.StatusCode != 200 { // handle bad request
+		var bErr BinanceErr
+		err = json.Unmarshal(content, &bErr)
+		if err != nil {
+			return nil, fmt.Errorf("binance %d\n%w", resp.StatusCode, err)
+		} else {
+			return nil, fmt.Errorf("binance %v", bErr)
+		}
 	}
 
 	var candleStickData CandleStickData
@@ -40,7 +52,7 @@ func GetCandleStickData(symbol, interval string, limit int, startTime, endTime u
 	}
 	candleStickData.Symbol = symbol
 
-	return &candleStickData
+	return &candleStickData, nil
 }
 
 type candleStick struct {

@@ -47,6 +47,7 @@ type TypicalPriceData struct {
 	Spread     float64 // s^2
 	TradeStart uint64  // Data[0].TradeStart
 	TradeEnd   uint64  // Data[l-1].TradeEnd
+	Count      int
 }
 
 func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
@@ -82,6 +83,8 @@ func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
 
 	tpd.TradeStart = tpd.Data[0].TradeStart
 	tpd.TradeEnd = tpd.Data[len(tpd.Data)-1].TradeEnd
+
+	tpd.Count = len(tpd.Data)
 
 	return tpd
 }
