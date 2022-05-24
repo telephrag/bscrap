@@ -25,11 +25,11 @@ func main() {
 	}
 	processedDataB := candleStickDataB.ProcessCandleStickData()
 
-	rd := models.RelationData{
-		First:  processedDataA,
-		Second: processedDataB,
+	rd, err := models.GetRelation(processedDataA, processedDataB)
+	if err != nil {
+		log.Panic(err)
 	}
-	fmt.Println(rd)
+	fmt.Printf("%#v", rd)
 
 	interupt := make(chan os.Signal, 1)
 	signal.Notify(interupt, syscall.SIGTERM, syscall.SIGINT)
