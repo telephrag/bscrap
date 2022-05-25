@@ -1,4 +1,4 @@
-package models
+package binance
 
 type BinanceErr struct {
 	Code int    `json:"code"`

@@ -1,4 +1,4 @@
-package models
+package binance
 
 import (
 	"bscrap/config"
@@ -56,13 +56,13 @@ func GetCandleStickData(symbol, interval string, limit int, startTime, endTime u
 }
 
 type candleStick struct {
-	TradeStart uint64
+	TradeStart int64
 	PriceOpen  string
 	PriceHigh  string
 	PriceLow   string
 	PriceClose string
 	Volume     string
-	TradeEnd   uint64
+	TradeEnd   int64
 }
 
 func (cs *candleStick) UnmarshalJSON(rawData []byte) error {
@@ -79,9 +79,6 @@ func (cs *candleStick) UnmarshalJSON(rawData []byte) error {
 	if err := json.Unmarshal(rawData, &data); err != nil {
 		return err
 	}
-
-	cs.TradeStart /= 1000 // binance stores time in miliseconds hence division by 1000
-	cs.TradeEnd /= 1000
 
 	return nil
 }

@@ -1,4 +1,4 @@
-package models
+package binance
 
 import (
 	"errors"
@@ -20,6 +20,9 @@ func GetRelation(a, b *TypicalPriceData) (*RelationData, error) {
 
 	if a.Data[0].TradeStart != b.Data[0].TradeStart ||
 		a.Data[0].TradeEnd != b.Data[0].TradeEnd {
+
+		// deduce intervals
+		// check if startTime's inside earlier dataset can be devided by interval of later dataset
 		return nil, errors.New("interval sizes mismatch")
 	}
 

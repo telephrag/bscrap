@@ -1,4 +1,4 @@
-package models
+package binance
 
 import (
 	"fmt"
@@ -6,47 +6,16 @@ import (
 	"strconv"
 )
 
-type typicalPrice struct {
-	TradeStart uint64
-	TradeEnd   uint64
-	Price      float64
-}
-
-func processCandleStick(cs *candleStick) (*typicalPrice, error) {
-	tp := 0.0 // (low + high + close) / 3
-	temp, err := strconv.ParseFloat(cs.PriceLow, 64)
-	if err != nil {
-		return nil, fmt.Errorf("i.PriceLow: %w", err)
-	}
-	tp += temp
-
-	temp, err = strconv.ParseFloat(cs.PriceHigh, 64)
-	if err != nil {
-		return nil, fmt.Errorf("i.PriceHigh: %w", err)
-	}
-	tp += temp
-
-	temp, err = strconv.ParseFloat(cs.PriceClose, 64)
-	if err != nil {
-		return nil, fmt.Errorf("i.PriceClose: %w", err)
-	}
-	tp += temp
-	tp /= 3.0
-
-	return &typicalPrice{
-		TradeStart: cs.TradeStart,
-		TradeEnd:   cs.TradeEnd,
-		Price:      tp,
-	}, nil
-}
-
-type TypicalPriceData struct {
+// MiB =  8388608 bits
+// mathematically Count <= 43687.8333... ~ 43687
+// binance's limit on amount of records at once = 1000
+type TypicalPriceData struct { // 544 + 192 * Count
 	Symbol     string
 	Data       []typicalPrice
 	Mean       float64
 	Spread     float64 // s^2
-	TradeStart uint64  // Data[0].TradeStart
-	TradeEnd   uint64  // Data[l-1].TradeEnd
+	TradeStart int64   // Data[0].TradeStart
+	TradeEnd   int64   // Data[l-1].TradeEnd
 	Count      int
 }
 
@@ -87,4 +56,38 @@ func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
 	tpd.Count = len(tpd.Data)
 
 	return tpd
+}
+
+type typicalPrice struct {
+	TradeStart int64
+	TradeEnd   int64
+	Price      float64
+}
+
+func processCandleStick(cs *candleStick) (*typicalPrice, error) {
+	tp := 0.0 // (low + high + close) / 3
+	temp, err := strconv.ParseFloat(cs.PriceLow, 64)
+	if err != nil {
+		return nil, fmt.Errorf("i.PriceLow: %w", err)
+	}
+	tp += temp
+
+	temp, err = strconv.ParseFloat(cs.PriceHigh, 64)
+	if err != nil {
+		return nil, fmt.Errorf("i.PriceHigh: %w", err)
+	}
+	tp += temp
+
+	temp, err = strconv.ParseFloat(cs.PriceClose, 64)
+	if err != nil {
+		return nil, fmt.Errorf("i.PriceClose: %w", err)
+	}
+	tp += temp
+	tp /= 3.0
+
+	return &typicalPrice{
+		TradeStart: cs.TradeStart,
+		TradeEnd:   cs.TradeEnd,
+		Price:      tp,
+	}, nil
 }
