@@ -6,9 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -40,23 +37,19 @@ func InitMongo(uri string) (*MongoInstante, error) {
 	}, nil
 }
 
-func (mi *MongoInstante) StoreRelationData(rd *binance.RelationData) error {
+func (mi *MongoInstante) StoreRelationData(rd *binance.RelationData) (*MongoPayload, error) {
 
 	pl := NewMongoPayload(rd)
 
 	ctx := context.Background()
 	ior, err := mi.Col.InsertOne(ctx, pl)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if ior.InsertedID == nil {
-		return errors.New("document was not inserted")
+		return nil, errors.New("document was not inserted")
 	}
-
-	interupt := make(chan os.Signal, 1)
-	signal.Notify(interupt, syscall.SIGTERM, syscall.SIGINT)
-	<-interupt
 
 	fod := mi.Col.FindOneAndDelete(ctx, bson.M{"_id": ior.InsertedID})
 
@@ -65,5 +58,5 @@ func (mi *MongoInstante) StoreRelationData(rd *binance.RelationData) error {
 
 	fmt.Println(doc)
 
-	return nil
+	return &doc, nil
 }

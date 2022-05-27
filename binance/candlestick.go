@@ -16,7 +16,7 @@ type CandleStickData struct {
 }
 
 // startTime and endTime are passed in milliseconds (how it's on Binance)
-func GetCandleStickData(symbol, interval string, limit int, startTime, endTime uint64) (*CandleStickData, error) {
+func GetCandleStickData(symbol, interval, limit, startTime, endTime string) (*CandleStickData, error) {
 
 	uri := util.NewURI(config.API_URL, "https").Proceed("klines")
 	uri.Symbol(symbol).Interval(interval).Limit(limit).Timeframe(startTime, endTime)

@@ -2,9 +2,10 @@ package util
 
 import (
 	"errors"
-	"fmt"
+	"strconv"
 )
 
+// URI is tasked to prevent bad requests to API in advance
 type URI struct {
 	scheme string
 	base   string
@@ -61,34 +62,71 @@ func (u *URI) Interval(interval string) *URI {
 	return u
 }
 
-// endTime == 0 is ommited
-func (u *URI) Timeframe(startTime, endTime uint64) *URI {
+func (u *URI) Limit(limit string) *URI {
 	if u.err != nil {
 		return u
 	}
 
-	if endTime == 0 {
-		return u.argAdd("startTime", fmt.Sprintf("%d", startTime))
+	if limit != "" {
+		limitInt, err := strconv.ParseInt(limit, 10, 64)
+		if err != nil {
+			u.err = errors.New("\"limit\" must be int")
+			return u
+		}
+		if limitInt < 0 {
+			u.err = errors.New("\"limit\" must be positive")
+			return u
+		}
+
+		return u.argAdd("limit", limit)
 	}
 
-	if startTime < endTime {
-		return u.argAdd("startTime", fmt.Sprintf("%d", startTime)).argAdd("endTime", fmt.Sprintf("%d", endTime))
-	}
-
-	u.err = errors.New("startTime exceeds endTime")
 	return u
 }
 
-func (u *URI) Limit(limit int) *URI {
+func (u *URI) Timeframe(startTime, endTime string) *URI {
 	if u.err != nil {
 		return u
 	}
 
-	if limit <= 0 {
-		u.err = errors.New("record limit should be positive")
+	var stInt int64
+	if startTime != "" {
+		stInt, u.err = strconv.ParseInt(startTime, 10, 64)
+		if u.err != nil {
+			u.err = errors.New("\"startTime\" must be int64")
+			return u
+		}
+
+		if stInt < 0 {
+			u.err = errors.New("\"startTime\" must be positive")
+			return u
+		}
+
+		u.argAdd("startTime", startTime)
 	}
 
-	return u.argAdd("limit", fmt.Sprintf("%d", limit))
+	var etInt int64
+	if endTime != "" {
+		etInt, u.err = strconv.ParseInt(startTime, 10, 64)
+		if u.err != nil {
+			u.err = errors.New("\"endTime\" must be int64")
+			return u
+		}
+
+		if etInt < 0 {
+			u.err = errors.New("\"endTime\" must be positive")
+			return u
+		}
+
+		if stInt > etInt {
+			u.err = errors.New("startTime exceeds endTime")
+			return u
+		}
+
+		return u.argAdd("endTime", endTime)
+	}
+
+	return u
 }
 
 func (u *URI) String() (string, error) {

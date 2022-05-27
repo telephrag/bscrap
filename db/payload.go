@@ -9,8 +9,8 @@ type MongoPayload struct {
 	PairB       pair    `bson:"pair_b"`
 	Correlation float64 `bson:"correlation"`
 	Covariance  float64 `bson:"covariance"`
-	TradeStart  int64   `bson:"trade_start"`
-	TradeEnd    int64   `bson:"trade_end"`
+	TradeStart  int64   `bson:"startTime"`
+	TradeEnd    int64   `bson:"endTime"`
 	Count       int     `bson:"count"`
 }
 
