@@ -5,19 +5,18 @@ import (
 	"bscrap/config"
 	"context"
 	"errors"
-	"fmt"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type MongoInstante struct {
+type MongoInstance struct {
 	Cli *mongo.Client
 	Col *mongo.Collection
 }
 
-func InitMongo(uri string) (*MongoInstante, error) {
+func InitMongo(uri string) (*MongoInstance, error) {
 	opts := options.Client().ApplyURI(uri)
 	client, err := mongo.Connect(context.TODO(), opts)
 	if err != nil {
@@ -31,17 +30,16 @@ func InitMongo(uri string) (*MongoInstante, error) {
 
 	collection := client.Database(config.DBName).Collection(config.CollectionName)
 
-	return &MongoInstante{
+	return &MongoInstance{
 		Cli: client,
 		Col: collection,
 	}, nil
 }
 
-func (mi *MongoInstante) StoreRelationData(rd *binance.RelationData) (*MongoPayload, error) {
+func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.RelationData) (*MongoPayload, error) {
 
 	pl := NewMongoPayload(rd)
 
-	ctx := context.Background()
 	ior, err := mi.Col.InsertOne(ctx, pl)
 	if err != nil {
 		return nil, err
@@ -55,8 +53,6 @@ func (mi *MongoInstante) StoreRelationData(rd *binance.RelationData) (*MongoPayl
 
 	var doc MongoPayload
 	fod.Decode(&doc)
-
-	fmt.Println(doc)
 
 	return &doc, nil
 }

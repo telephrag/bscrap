@@ -2,7 +2,9 @@ package main
 
 import (
 	"bscrap/config"
+	"bscrap/db"
 	"bscrap/services"
+	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,8 +15,14 @@ import (
 
 func main() {
 
+	mi, err := db.InitMongo(config.DBUri)
+	if err != nil {
+		log.Panic(err)
+		return
+	}
+
 	go func() {
-		err := http.ListenAndServe(config.Localhost, services.Handle())
+		err := http.ListenAndServe(config.Localhost, services.Handle(mi))
 		if err != nil {
 			panic(err)
 		}

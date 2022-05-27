@@ -119,7 +119,7 @@ func (u *URI) Timeframe(startTime, endTime string) *URI {
 		}
 
 		if stInt > etInt {
-			u.err = errors.New("startTime exceeds endTime")
+			u.err = errors.New("startTime must not exceed endTime")
 			return u
 		}
 
