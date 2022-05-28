@@ -5,8 +5,8 @@ import (
 )
 
 type RelationDataPayload struct {
-	PairA       pair    `json:"pair_a,omitempty" bson:"pair_a"`
-	PairB       pair    `json:"pair_b,omitempty" bson:"pair_b"`
+	PairA       rdPair  `json:"pair_a,omitempty" bson:"pair_a"`
+	PairB       rdPair  `json:"pair_b,omitempty" bson:"pair_b"`
 	Correlation float64 `json:"correlation,omitempty" bson:"correlation"`
 	Covariance  float64 `json:"covariance,omitempty" bson:"covariance"`
 	StartTime   int64   `json:"startTime,omitempty" bson:"startTime"`
@@ -14,7 +14,7 @@ type RelationDataPayload struct {
 	Count       int     `json:"count,omitempty" bson:"count"`
 }
 
-type pair struct {
+type rdPair struct {
 	Symbol string  `json:"symbol,omitempty" bson:"symbol"`
 	Mean   float64 `json:"mean,omitempty" bson:"mean"`
 	Spread float64 `json:"spread,omitempty" bson:"spread"`
@@ -22,12 +22,12 @@ type pair struct {
 
 func NewMongoPayload(rd *binance.RelationData) *RelationDataPayload {
 	return &RelationDataPayload{
-		PairA: pair{
+		PairA: rdPair{
 			Symbol: rd.First.Symbol,
 			Mean:   rd.First.Mean,
 			Spread: rd.First.Spread,
 		},
-		PairB: pair{
+		PairB: rdPair{
 			Symbol: rd.Second.Symbol,
 			Mean:   rd.Second.Mean,
 			Spread: rd.Second.Spread,

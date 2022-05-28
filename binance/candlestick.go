@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -40,7 +39,7 @@ func GetCandleStickData(symbol, interval, limit, startTime, endTime string) (*Ca
 		var bErr BinanceErr
 		err = json.Unmarshal(content, &bErr)
 		if err != nil {
-			return nil, fmt.Errorf("binance %d\n%w", resp.StatusCode, err)
+			return nil, fmt.Errorf("binance %w", err)
 		} else {
 			return nil, fmt.Errorf("binance %v", bErr)
 		}
@@ -48,7 +47,7 @@ func GetCandleStickData(symbol, interval, limit, startTime, endTime string) (*Ca
 
 	var candleStickData CandleStickData
 	if err = json.Unmarshal(content, &candleStickData.Data); err != nil {
-		log.Fatal(err)
+		return nil, fmt.Errorf("binance %w", err)
 	}
 	candleStickData.Symbol = symbol
 
@@ -61,7 +60,6 @@ type candleStick struct {
 	PriceHigh  string
 	PriceLow   string
 	PriceClose string
-	Volume     string
 	TradeEnd   int64
 }
 
@@ -72,7 +70,7 @@ func (cs *candleStick) UnmarshalJSON(rawData []byte) error {
 		&cs.PriceHigh,
 		&cs.PriceLow,
 		&cs.PriceClose,
-		&cs.Volume,
+		nil,
 		&cs.TradeEnd,
 	}
 

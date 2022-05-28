@@ -15,5 +15,5 @@ func HttpErrWriter(rw http.ResponseWriter, err error, code int) {
 		c = code
 	}
 
-	http.Error(rw, fmt.Sprintf("%d: %s\n", c, err.Error()), c)
+	http.Error(rw, fmt.Sprintf("%d; %s\n", c, err.Error()), c)
 }
