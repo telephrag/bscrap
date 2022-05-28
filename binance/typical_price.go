@@ -1,6 +1,7 @@
 package binance
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"strconv"
@@ -19,7 +20,11 @@ type TypicalPriceData struct { // 544 + 192 * Count
 	Count      int
 }
 
-func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
+func (csd *CandleStickData) ProcessCandleStickData() (*TypicalPriceData, error) {
+	if len(csd.Data) == 0 {
+		return nil, errors.New("no candlestick data to process")
+	}
+
 	tpd := &TypicalPriceData{}
 
 	tpd.Symbol = csd.Symbol
@@ -55,7 +60,7 @@ func (csd *CandleStickData) ProcessCandleStickData() *TypicalPriceData {
 
 	tpd.Count = len(tpd.Data)
 
-	return tpd
+	return tpd, nil
 }
 
 type typicalPrice struct {

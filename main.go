@@ -3,6 +3,7 @@ package main
 import (
 	"bscrap/config"
 	"bscrap/db"
+	"bscrap/env"
 	"bscrap/services"
 	"log"
 	"net/http"
@@ -20,9 +21,13 @@ func main() {
 		log.Panic(err)
 		return
 	}
+	env := &env.Env{Mi: mi}
 
 	go func() {
-		err := http.ListenAndServe(config.Localhost, services.Handle(mi))
+		err := http.ListenAndServe(
+			config.Localhost,
+			services.Handle(env),
+		)
 		if err != nil {
 			panic(err)
 		}

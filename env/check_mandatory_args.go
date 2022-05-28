@@ -1,13 +1,12 @@
-package localmw
+package env
 
 import (
 	"bscrap/util"
-	"context"
 	"errors"
 	"net/http"
 )
 
-func CheckMandatoryArgs(next http.Handler) http.Handler {
+func (env *Env) CheckMandatoryArgs(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
 		argv := r.URL.Query()
@@ -37,8 +36,7 @@ func CheckMandatoryArgs(next http.Handler) http.Handler {
 			return
 		}
 
-		next.ServeHTTP(rw, r.WithContext(
-			context.WithValue(r.Context(), util.CtxKey("argv"), argv),
-		))
+		env.Argv = argv
+		next.ServeHTTP(rw, r)
 	})
 }

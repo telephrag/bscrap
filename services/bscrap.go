@@ -1,8 +1,7 @@
 package services
 
 import (
-	"bscrap/db"
-	"bscrap/localmw"
+	"bscrap/env"
 	"net/http"
 
 	"github.com/go-chi/chi"
@@ -12,15 +11,15 @@ import (
 func dummy(rw http.ResponseWriter, r *http.Request) {
 }
 
-func Handle(mi *db.MongoInstance) http.Handler {
+func Handle(env *env.Env) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
 	r.With(
-		localmw.CheckMandatoryArgs,
-		localmw.GetDataAndProcess,
-		mi.StoreRelationData_MW,
-		localmw.WriteResponse,
+		env.CheckMandatoryArgs,
+		env.GetDataAndProcess,
+		env.Store,
+		env.WriteResponse,
 	).Get("/", dummy)
 
 	r.Get("/help", nil)

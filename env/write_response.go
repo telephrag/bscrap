@@ -1,27 +1,25 @@
-package localmw
+package env
 
 import (
-	"bscrap/db"
 	"bscrap/util"
 	"encoding/json"
 	"errors"
 	"net/http"
 )
 
-func WriteResponse(next http.Handler) http.Handler {
+func (env *Env) WriteResponse(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
-		pl, ok := r.Context().Value(util.CtxKey("payload")).(*db.MongoPayload)
-		if !ok {
+		if env.Pl == nil {
 			util.HttpErrWriter(
 				rw,
-				errors.New("failed to retrieve payload from context"),
+				errors.New("no payload to write received"),
 				http.StatusInternalServerError,
 			)
 			return
 		}
 
-		data, err := json.Marshal(pl)
+		data, err := json.Marshal(env.Pl)
 		if err != nil {
 			util.HttpErrWriter(
 				rw,

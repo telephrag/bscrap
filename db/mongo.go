@@ -36,7 +36,7 @@ func InitMongo(uri string) (*MongoInstance, error) {
 	}, nil
 }
 
-func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.RelationData) (*MongoPayload, error) {
+func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.RelationData) (*RelationDataPayload, error) {
 
 	pl := NewMongoPayload(rd)
 
@@ -51,7 +51,7 @@ func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.Rela
 
 	fod := mi.Col.FindOneAndDelete(ctx, bson.M{"_id": ior.InsertedID})
 
-	var doc MongoPayload
+	var doc RelationDataPayload
 	fod.Decode(&doc)
 
 	return &doc, nil
