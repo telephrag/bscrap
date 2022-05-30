@@ -4,6 +4,7 @@ import (
 	"bscrap/config"
 	"context"
 
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -24,9 +25,24 @@ func ConnectMongo(uri string) (*MongoInstance, error) {
 		return nil, err
 	}
 
-	return &MongoInstance{
-		Cli: client,
-	}, nil
+	mi := MongoInstance{Cli: client}
+
+	index := mongo.IndexModel{
+		Keys:    bson.D{{"expire", 1}},
+		Options: options.Index().SetExpireAfterSeconds(0),
+	}
+
+	_, err = mi.Col(config.ResultsCol).Indexes().CreateOne(context.TODO(), index)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = mi.Col(config.RawDataCol).Indexes().CreateOne(context.TODO(), index)
+	if err != nil {
+		return nil, err
+	}
+
+	return &mi, nil
 }
 
 func (mi MongoInstance) Col(colName string) *mongo.Collection {

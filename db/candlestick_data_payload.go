@@ -1,11 +1,18 @@
 package db
 
-import "bscrap/binance"
+import (
+	"bscrap/binance"
+	"bscrap/config"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type CandleStickDataPayload struct {
-	ID     interface{} `json:"_id,omitempty" bson:"_id,omitempty"`
-	First  csdPair     `json:"pair_a,omitempty" bson:"pair_a"`
-	Second csdPair     `json:"pair_b,omitempty" bson:"pair_b"`
+	ID     interface{}        `json:"_id,omitempty" bson:"_id,omitempty"`
+	First  csdPair            `json:"pair_a,omitempty" bson:"pair_a"`
+	Second csdPair            `json:"pair_b,omitempty" bson:"pair_b"`
+	Expire primitive.DateTime `json:"expire,omitempty" bson:"expire"`
 }
 
 type csdPair struct {
@@ -44,5 +51,6 @@ func NewCandleStickDataPayload(a, b *binance.CandleStickData) *CandleStickDataPa
 	return &CandleStickDataPayload{
 		First:  newCsdPair(a),
 		Second: newCsdPair(b),
+		Expire: primitive.NewDateTimeFromTime(time.Now().Add(config.RecordExpirationTime).UTC()),
 	}
 }

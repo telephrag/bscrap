@@ -14,5 +14,7 @@ func (mi *MongoInstance) ReadOneByID(ctx context.Context, colName string, id str
 	if err != nil {
 		return nil, err
 	}
-	return col.FindOne(ctx, bson.M{"_id": objID}), nil
+
+	res := col.FindOne(ctx, bson.M{"_id": objID})
+	return res, res.Err()
 }

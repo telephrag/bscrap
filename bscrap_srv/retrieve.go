@@ -40,7 +40,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 				util.HttpErrWriter(
 					rw,
 					errors.New("invalid id was given"),
-					http.StatusInternalServerError,
+					http.StatusBadRequest,
 				)
 				return
 			}
@@ -51,7 +51,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 				util.HttpErrWriter(
 					rw,
 					errors.New("failed to decode processed data"),
-					http.StatusInternalServerError,
+					http.StatusBadRequest,
 				)
 				return
 			}
