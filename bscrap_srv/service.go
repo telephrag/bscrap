@@ -1,17 +1,14 @@
-package services
+package bscrap_srv
 
 import (
-	"bscrap/env"
+	"bscrap/util"
 	"net/http"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 )
 
-func dummy(rw http.ResponseWriter, r *http.Request) {
-}
-
-func Handle(env *env.Env) http.Handler {
+func Run(env *Env) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 
@@ -20,9 +17,11 @@ func Handle(env *env.Env) http.Handler {
 		env.GetDataAndProcess,
 		env.Store,
 		env.WriteResponse,
-	).Get("/", dummy)
+	).Get("/", util.Dummy)
 
-	r.Get("/help", nil)
+	r.With(
+		env.Retrieve,
+	).Get("/retrieve", util.Dummy)
 
 	return r
 }

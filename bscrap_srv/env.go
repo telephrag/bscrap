@@ -1,4 +1,4 @@
-package env
+package bscrap_srv
 
 import (
 	"bscrap/binance"
@@ -12,5 +12,7 @@ type Env struct {
 	CSDataA *binance.CandleStickData
 	CSDataB *binance.CandleStickData
 	RData   *binance.RelationData
-	Pl      *db.RelationDataPayload
+
+	CSDataPayload *db.CandleStickDataPayload
+	RDataPayload  *db.RelationDataPayload
 }

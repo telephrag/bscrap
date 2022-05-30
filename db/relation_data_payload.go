@@ -5,13 +5,15 @@ import (
 )
 
 type RelationDataPayload struct {
-	PairA       rdPair  `json:"pair_a,omitempty" bson:"pair_a"`
-	PairB       rdPair  `json:"pair_b,omitempty" bson:"pair_b"`
-	Correlation float64 `json:"correlation,omitempty" bson:"correlation"`
-	Covariance  float64 `json:"covariance,omitempty" bson:"covariance"`
-	StartTime   int64   `json:"startTime,omitempty" bson:"startTime"`
-	EndTime     int64   `json:"endTime,omitempty" bson:"endTime"`
-	Count       int     `json:"count,omitempty" bson:"count"`
+	ID          interface{} `json:"_id,omitempty" bson:"_id,omitempty"`
+	RawDataID   interface{} `json:"_raw_data_id,omitempty" bson:"_raw_data_id,omitempty"`
+	PairA       rdPair      `json:"pair_a,omitempty" bson:"pair_a"`
+	PairB       rdPair      `json:"pair_b,omitempty" bson:"pair_b"`
+	Correlation float64     `json:"correlation,omitempty" bson:"correlation"`
+	Covariance  float64     `json:"covariance,omitempty" bson:"covariance"`
+	StartTime   int64       `json:"startTime,omitempty" bson:"startTime"`
+	EndTime     int64       `json:"endTime,omitempty" bson:"endTime"`
+	Count       int         `json:"count,omitempty" bson:"count"`
 }
 
 type rdPair struct {

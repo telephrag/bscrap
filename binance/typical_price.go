@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 )
 
@@ -48,12 +49,13 @@ func (csd *CandleStickData) ProcessCandleStickData() (*TypicalPriceData, error) 
 		selectiveAverageSquare += processed.Price * processed.Price / count
 	}
 
-	// M(x^2) - M^2(x), M() -- expected value
+	// sqrt(M(x^2) - M^2(x)), M() -- expected value
 	tpd.Spread = (selectiveAverageSquare - tpd.Mean*tpd.Mean)
 	if count > 1 { // idk who would want to calc dispersion for such a small sample size
 		ub := count / (count - 1) // unbiasing dispersion
 		tpd.Spread *= ub
 	}
+	tpd.Spread = math.Sqrt(tpd.Spread)
 
 	tpd.TradeStart = tpd.Data[0].TradeStart
 	tpd.TradeEnd = tpd.Data[len(tpd.Data)-1].TradeEnd

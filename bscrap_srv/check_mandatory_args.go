@@ -1,4 +1,4 @@
-package env
+package bscrap_srv
 
 import (
 	"bscrap/util"

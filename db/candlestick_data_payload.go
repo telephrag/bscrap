@@ -3,8 +3,9 @@ package db
 import "bscrap/binance"
 
 type CandleStickDataPayload struct {
-	First  csdPair `json:"pair_a,omitempty" bson:"pair_a"`
-	Second csdPair `json:"pair_b,omitempty" bson:"pair_b"`
+	ID     interface{} `json:"_id,omitempty" bson:"_id,omitempty"`
+	First  csdPair     `json:"pair_a,omitempty" bson:"pair_a"`
+	Second csdPair     `json:"pair_b,omitempty" bson:"pair_b"`
 }
 
 type csdPair struct {

@@ -1,9 +1,8 @@
-package env
+package bscrap_srv
 
 import (
 	"bscrap/util"
 	"errors"
-	"fmt"
 	"net/http"
 )
 
@@ -16,6 +15,7 @@ func (env *Env) Store(next http.Handler) http.Handler {
 				errors.New("connection with mongodb does not exist"),
 				http.StatusInternalServerError,
 			)
+			return
 		}
 
 		if env.RData == nil {
@@ -26,23 +26,22 @@ func (env *Env) Store(next http.Handler) http.Handler {
 			return
 		}
 
-		pl, err := env.Mi.StoreRelationData(r.Context(), env.RData)
+		rd, err := env.Mi.StoreRelationData(r.Context(), env.RData)
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 			return
 		}
 
-		err = env.Mi.StoreCandleStickData(r.Context(), env.CSDataA, env.CSDataB)
+		cs, err := env.Mi.StoreCandleStickData(r.Context(), env.CSDataA, env.CSDataB)
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 			return
 		}
 
-		var input string
-		fmt.Println("You can check mongo now. To continue type in anything.")
-		fmt.Scan(&input)
+		rd.RawDataID = cs.ID
 
-		env.Pl = pl
+		env.RDataPayload = rd
+		env.CSDataPayload = cs
 		next.ServeHTTP(rw, r)
 	})
 }

@@ -1,10 +1,9 @@
 package main
 
 import (
+	"bscrap/bscrap_srv"
 	"bscrap/config"
 	"bscrap/db"
-	"bscrap/env"
-	"bscrap/services"
 	"log"
 	"net/http"
 	"os"
@@ -12,21 +11,21 @@ import (
 	"syscall"
 )
 
-// https://api.binance.com/api/v3/klines?symbol=ZECUSDT&interval=1w&limit=50&startTime=1621728000000&endTime=1653264000000
+// https://api.binance.com/api/v3/klines?symbol=ZECUSDT&interval=1w&limit=52&startTime=1621728000000&endTime=1653264000000
 
 func main() {
 
-	mi, err := db.InitMongo(config.DBUri)
+	mi, err := db.ConnectMongo(config.DBUri)
 	if err != nil {
 		log.Panic(err)
 		return
 	}
-	env := &env.Env{Mi: mi}
 
+	bScrapEnv := &bscrap_srv.Env{Mi: mi}
 	go func() {
 		err := http.ListenAndServe(
-			config.Localhost,
-			services.Handle(env),
+			"localhost:8080",
+			bscrap_srv.Run(bScrapEnv),
 		)
 		if err != nil {
 			panic(err)
