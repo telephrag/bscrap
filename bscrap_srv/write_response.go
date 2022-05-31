@@ -4,6 +4,7 @@ import (
 	"bscrap/util"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -23,7 +24,7 @@ func (env *Env) WriteResponse(next http.Handler) http.Handler {
 		if err != nil {
 			util.HttpErrWriter(
 				rw,
-				errors.New("failed to marshal response"),
+				fmt.Errorf("%w: failed to marshal response", err),
 				http.StatusInternalServerError,
 			)
 			return
@@ -34,7 +35,7 @@ func (env *Env) WriteResponse(next http.Handler) http.Handler {
 		if err != nil {
 			util.HttpErrWriter(
 				rw,
-				errors.New("failed to write response"),
+				fmt.Errorf("%w: failed to write response", err),
 				http.StatusInternalServerError,
 			)
 			return

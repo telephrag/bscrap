@@ -10,7 +10,7 @@ import (
 func (env *Env) GetDataAndProcess(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
-		if len(env.Argv) == 0 {
+		if len(env.Argv) == 0 { // do I even need this check if CheckMandatoryArgs exists
 			util.HttpErrWriter(
 				rw,
 				errors.New("no uri arguments, at least 3 expected"),

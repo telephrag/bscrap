@@ -6,6 +6,7 @@ import (
 	"bscrap/util"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -22,7 +23,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 		if err := env.Mi.Cli.Ping(r.Context(), nil); err != nil {
 			util.HttpErrWriter(
 				rw,
-				errors.New("connection with mongodb does not exist"),
+				fmt.Errorf("%w: connection with mongodb does not exist", err),
 				http.StatusInternalServerError,
 			)
 			return
@@ -39,7 +40,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 			if err != nil {
 				util.HttpErrWriter(
 					rw,
-					errors.New("invalid id was given"),
+					fmt.Errorf("%w: invalid id was given", err),
 					http.StatusBadRequest,
 				)
 				return
@@ -50,7 +51,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 			if err != nil {
 				util.HttpErrWriter(
 					rw,
-					errors.New("failed to decode processed data"),
+					fmt.Errorf("%w: failed to decode processed data", err),
 					http.StatusBadRequest,
 				)
 				return
@@ -64,7 +65,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 			if err != nil {
 				util.HttpErrWriter(
 					rw,
-					errors.New("invalid id was given"),
+					fmt.Errorf("%w: invalid id was given", err),
 					http.StatusInternalServerError,
 				)
 				return
@@ -75,7 +76,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 			if err != nil {
 				util.HttpErrWriter(
 					rw,
-					errors.New("invalid id was given"),
+					fmt.Errorf("%w: invalid id was given", err),
 					http.StatusInternalServerError,
 				)
 				return
@@ -87,7 +88,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 		if err != nil {
 			util.HttpErrWriter(
 				rw,
-				errors.New("failed to marshal response"),
+				fmt.Errorf("%w: failed to marshal response", err),
 				http.StatusInternalServerError,
 			)
 			return

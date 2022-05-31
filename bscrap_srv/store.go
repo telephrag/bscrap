@@ -3,6 +3,7 @@ package bscrap_srv
 import (
 	"bscrap/util"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -12,7 +13,7 @@ func (env *Env) Store(next http.Handler) http.Handler {
 		if err := env.Mi.Cli.Ping(r.Context(), nil); err != nil {
 			util.HttpErrWriter(
 				rw,
-				errors.New("connection with mongodb does not exist"),
+				fmt.Errorf("%w: connection with mongodb does not exist", err),
 				http.StatusInternalServerError,
 			)
 			return
