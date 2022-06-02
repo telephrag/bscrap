@@ -7,9 +7,9 @@ import (
 	"errors"
 )
 
-func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.RelationData) (*RelationDataPayload, error) {
+func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.RelationData) (*binance.RelationDataPayload, error) {
 
-	pl := NewMongoPayload(rd)
+	pl := binance.NewRelationDataPayload(rd)
 
 	collection := mi.Col(config.ResultsCol)
 
@@ -26,11 +26,14 @@ func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.Rela
 	return pl, nil
 }
 
-func (mi *MongoInstance) StoreCandleStickData(ctx context.Context, csdA, csdB *binance.CandleStickData) (*CandleStickDataPayload, error) {
+func (mi *MongoInstance) StoreCandleStickData(
+	ctx context.Context,
+	csd *binance.CandleStickData,
+) (*binance.CandleStickDataPayload, error) {
 
-	pl := NewCandleStickDataPayload(csdA, csdB)
+	pl := binance.NewCandleStickDataPayload(csd)
 
-	collection := mi.Col(config.RawDataCol)
+	collection := mi.Col(config.SourceDataCollection)
 
 	ior, err := collection.InsertOne(ctx, pl)
 	if err != nil {

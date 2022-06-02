@@ -1,8 +1,8 @@
 package bscrap_srv
 
 import (
+	"bscrap/binance"
 	"bscrap/config"
-	"bscrap/db"
 	"bscrap/util"
 	"encoding/json"
 	"errors"
@@ -14,8 +14,8 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 
 		argv := r.URL.Query()
-		if len(argv) > 2 {
-			err := errors.New("excessive amount of arguments given. Maximum 6 are allowed")
+		if len(argv) > 3 {
+			err := errors.New("excessive amount of arguments given. Maximum 3 are allowed")
 			util.HttpErrWriter(rw, err, http.StatusBadRequest)
 			return
 		}
@@ -23,15 +23,16 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 		if err := env.Mi.Cli.Ping(r.Context(), nil); err != nil {
 			util.HttpErrWriter(
 				rw,
-				fmt.Errorf("%w: connection with mongodb does not exist", err),
+				fmt.Errorf("%w: no connection with database", err),
 				http.StatusInternalServerError,
 			)
 			return
 		}
 
 		var data struct {
-			Processed *db.RelationDataPayload    `json:"processed"`
-			Raw       *db.CandleStickDataPayload `json:"raw"`
+			Processed *binance.RelationDataPayload    `json:"processed,omitempty"`
+			RawA      *binance.CandleStickDataPayload `json:"raw_a,omitempty"`
+			RawB      *binance.CandleStickDataPayload `json:"raw_b,omitempty"`
 		}
 
 		proc := argv.Get("processed")
@@ -46,7 +47,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 				return
 			}
 
-			rd := &db.RelationDataPayload{}
+			rd := &binance.RelationDataPayload{}
 			err = res.Decode(rd)
 			if err != nil {
 				util.HttpErrWriter(
@@ -59,9 +60,9 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 			data.Processed = rd
 		}
 
-		raw := argv.Get("raw")
-		if raw != "" {
-			res, err := env.Mi.ReadOneByID(r.Context(), config.RawDataCol, raw)
+		rawA := argv.Get("rawA")
+		if rawA != "" {
+			res, err := env.Mi.ReadOneByID(r.Context(), config.SourceDataCollection, rawA)
 			if err != nil {
 				util.HttpErrWriter(
 					rw,
@@ -71,7 +72,7 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 				return
 			}
 
-			cs := &db.CandleStickDataPayload{}
+			cs := &binance.CandleStickDataPayload{}
 			err = res.Decode(cs)
 			if err != nil {
 				util.HttpErrWriter(
@@ -81,7 +82,32 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 				)
 				return
 			}
-			data.Raw = cs
+			data.RawA = cs
+		}
+
+		rawB := argv.Get("rawB")
+		if rawB != "" {
+			res, err := env.Mi.ReadOneByID(r.Context(), config.SourceDataCollection, rawB)
+			if err != nil {
+				util.HttpErrWriter(
+					rw,
+					fmt.Errorf("%w: invalid id was given", err),
+					http.StatusInternalServerError,
+				)
+				return
+			}
+
+			cs := &binance.CandleStickDataPayload{}
+			err = res.Decode(cs)
+			if err != nil {
+				util.HttpErrWriter(
+					rw,
+					fmt.Errorf("%w: invalid id was given", err),
+					http.StatusInternalServerError,
+				)
+				return
+			}
+			data.RawB = cs
 		}
 
 		content, err := json.Marshal(data)

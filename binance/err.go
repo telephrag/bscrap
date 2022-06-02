@@ -1,6 +1,6 @@
 package binance
 
-type BinanceErr struct {
+type Err struct {
 	Code int    `json:"code"`
 	Msg  string `json:"msg"`
 }

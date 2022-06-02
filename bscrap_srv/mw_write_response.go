@@ -41,6 +41,12 @@ func (env *Env) WriteResponse(next http.Handler) http.Handler {
 			return
 		}
 
+		env.Argv = map[string][]string{} // cleanup
+		env.CSDataA = nil
+		env.CSDataB = nil
+		env.RData = nil
+		env.RDataPayload = nil
+
 		next.ServeHTTP(rw, r)
 	})
 }

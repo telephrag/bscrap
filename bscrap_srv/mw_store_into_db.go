@@ -33,16 +33,28 @@ func (env *Env) Store(next http.Handler) http.Handler {
 			return
 		}
 
-		cs, err := env.Mi.StoreCandleStickData(r.Context(), env.CSDataA, env.CSDataB)
-		if err != nil {
-			util.HttpErrWriter(rw, err, http.StatusInternalServerError)
-			return
+		// may overwrite csData
+		if !env.CSDataA.FromDB {
+			pl, err := env.Mi.StoreCandleStickData(r.Context(), env.CSDataA)
+			if err != nil {
+				util.HttpErrWriter(rw, err, http.StatusInternalServerError)
+				return
+			}
+			env.CSDataA.ID = pl.ID
 		}
+		rd.RawDataAID = env.CSDataA.ID
 
-		rd.RawDataID = cs.ID
+		if !env.CSDataB.FromDB {
+			pl, err := env.Mi.StoreCandleStickData(r.Context(), env.CSDataB)
+			if err != nil {
+				util.HttpErrWriter(rw, err, http.StatusInternalServerError)
+				return
+			}
+			env.CSDataB.ID = pl.ID
+		}
+		rd.RawDataBID = env.CSDataB.ID
 
 		env.RDataPayload = rd
-		env.CSDataPayload = cs
 		next.ServeHTTP(rw, r)
 	})
 }

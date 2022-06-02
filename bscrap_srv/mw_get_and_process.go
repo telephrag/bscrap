@@ -26,7 +26,7 @@ func (env *Env) GetDataAndProcess(next http.Handler) http.Handler {
 		startTime := env.Argv.Get("startTime")
 		endTime := env.Argv.Get("endTime")
 
-		candleStickDataA, err := binance.GetCandleStickData(symbolA, interval, limit, startTime, endTime)
+		candleStickDataA, err := env.GetCSD(r.Context(), symbolA, interval, limit, startTime, endTime)
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 			return
@@ -37,7 +37,7 @@ func (env *Env) GetDataAndProcess(next http.Handler) http.Handler {
 			return
 		}
 
-		candleStickDataB, err := binance.GetCandleStickData(symbolB, interval, limit, startTime, endTime)
+		candleStickDataB, err := env.GetCSD(r.Context(), symbolB, interval, limit, startTime, endTime)
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 			return

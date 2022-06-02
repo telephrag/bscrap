@@ -37,7 +37,7 @@ func ConnectMongo(uri string) (*MongoInstance, error) {
 		return nil, err
 	}
 
-	_, err = mi.Col(config.RawDataCol).Indexes().CreateOne(context.TODO(), index)
+	_, err = mi.Col(config.SourceDataCollection).Indexes().CreateOne(context.TODO(), index)
 	if err != nil {
 		return nil, err
 	}

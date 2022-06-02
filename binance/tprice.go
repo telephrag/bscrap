@@ -19,6 +19,7 @@ type TypicalPriceData struct { // 544 + 192 * Count
 	TradeStart int64   // Data[0].TradeStart
 	TradeEnd   int64   // Data[l-1].TradeEnd
 	Count      int
+	FromDB     bool
 }
 
 func (csd *CandleStickData) ProcessCandleStickData() (*TypicalPriceData, error) {
@@ -62,6 +63,8 @@ func (csd *CandleStickData) ProcessCandleStickData() (*TypicalPriceData, error) 
 
 	tpd.Count = len(tpd.Data)
 
+	tpd.FromDB = csd.FromDB
+
 	return tpd, nil
 }
 
@@ -71,7 +74,7 @@ type typicalPrice struct {
 	Price      float64
 }
 
-func processCandleStick(cs *candleStick) (*typicalPrice, error) {
+func processCandleStick(cs *CandleStick) (*typicalPrice, error) {
 	tp := 0.0 // (low + high + close) / 3
 	temp, err := strconv.ParseFloat(cs.PriceLow, 64)
 	if err != nil {
@@ -93,8 +96,8 @@ func processCandleStick(cs *candleStick) (*typicalPrice, error) {
 	tp /= 3.0
 
 	return &typicalPrice{
-		TradeStart: cs.TradeStart,
-		TradeEnd:   cs.TradeEnd,
+		TradeStart: cs.StartTime,
+		TradeEnd:   cs.EndTime,
 		Price:      tp,
 	}, nil
 }

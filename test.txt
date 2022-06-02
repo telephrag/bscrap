@@ -1,0 +1,8 @@
+
+# interval = 1w #
+
+localhost:8080/?symbolA=BTCUSDT&symbolB=ZECUSDT&interval=1w&limit=3&startTime={startTime}
+
+V startTime0 = 1621728000000
+V startTime1 = 1622004000000 // check if it'll use shrank csd
+startTime2 = 1622281000001 // check if it'll correctly deduce time
