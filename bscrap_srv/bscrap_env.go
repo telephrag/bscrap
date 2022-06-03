@@ -7,13 +7,10 @@ import (
 	"bscrap/util"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"strconv"
-	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -22,18 +19,18 @@ type Env struct {
 	Argv url.Values
 	Mi   *db.MongoInstance
 
-	CSDataA *binance.CandleStickData
-	CSDataB *binance.CandleStickData
+	KLDataA *binance.KLineData
+	KLDataB *binance.KLineData
 
-	RData        *binance.RelationData
-	RDataPayload *binance.RelationDataPayload
+	RelData        *binance.RelationData
+	RelDataPayload *binance.RelationDataPayload
 }
 
 // startTime and endTime are passed in milliseconds (how it's on Binance)
-func (env *Env) GetCSD(
+func (env *Env) GetKLD(
 	ctx context.Context,
 	symbol, interval, limit, startTime, endTime string,
-) (*binance.CandleStickData, error) {
+) (*binance.KLineData, error) {
 
 	uri := util.NewURI(config.API_URL, "https").Proceed("klines")
 	uri.Symbol(symbol).Interval(interval).Limit(limit).Timeframe(startTime, endTime)
@@ -42,7 +39,7 @@ func (env *Env) GetCSD(
 		return nil, err
 	}
 
-	csd, err := env.lookupCSDInDB( // lookup data in db to possibly avoid refering to API
+	kld, err := env.lookupKLDInDB( // lookup data in db to possibly avoid refering to API
 		ctx,
 		symbol,
 		interval,
@@ -51,8 +48,8 @@ func (env *Env) GetCSD(
 		endTime,
 	)
 	if err == nil { // TODO: handle if error is not ErrNoDocument
-		csd.FromDB = true
-		return csd, nil // return if data is already in db
+		kld.FromDB = true
+		return kld, nil // return if data is already in db
 	}
 
 	resp, err := http.Get(uriStr)
@@ -76,58 +73,25 @@ func (env *Env) GetCSD(
 		}
 	}
 
-	csd = &binance.CandleStickData{}
-	if err = json.Unmarshal(content, &csd.Data); err != nil {
+	kld = &binance.KLineData{}
+	if err = json.Unmarshal(content, &kld.Data); err != nil {
 		return nil, fmt.Errorf("binance %w", err)
 	}
-	csd.Symbol = symbol
-	csd.Interval = interval
+	kld.Symbol = symbol
+	kld.Interval = interval
 
-	return csd, nil
+	return kld, nil
 }
 
-func (env *Env) lookupCSDInDB(
+func (env *Env) lookupKLDInDB(
 	ctx context.Context,
 	symbol, interval, limit string,
 	startTime, endTime string,
-) (*binance.CandleStickData, error) {
+) (*binance.KLineData, error) {
 
-	var st, et int64
-	var err error
-
-	i := binance.IntervalLengths[interval]
-	r, ok := binance.IntervalRemainders[interval]
-	if !ok {
-		return nil, errors.New("given interval is invalid or not yet supported for db lookup")
-	}
-
-	if startTime != "" {
-		if st, err = strconv.ParseInt(startTime, 10, 64); err != nil {
-			return nil, fmt.Errorf("%w: \"startTime\" must be int64", err)
-		}
-		x := i - ((st - r) % i)
-		st += x
-	}
-
-	if endTime != "" {
-		if et, err = strconv.ParseInt(endTime, 10, 64); err != nil {
-			return nil, fmt.Errorf("%w: \"endTime\" must be int64", err)
-		}
-		et = et - (et % i) + r + i - 1
-	} else { // assume that user wants data up to current moment...
-		et = time.Now().UnixMilli() // ...if endTime and limit are not provided
-	}
-
-	if limit != "" {
-		l, err := strconv.ParseInt(limit, 10, 64)
-		if err != nil {
-			return nil, fmt.Errorf("%w: \"limit\" must be int64", err)
-		}
-
-		temp := st + i*l - 1 // is off by one error possible here? yep, fixed it
-		if temp < et || endTime == "" {
-			et = temp
-		}
+	st, et, err := util.DeduceTime(startTime, endTime, interval, limit)
+	if err != nil {
+		return nil, err
 	}
 
 	filter := bson.M{
@@ -149,21 +113,21 @@ func (env *Env) lookupCSDInDB(
 		}},
 	}
 
-	findOneRes := env.Mi.Col(config.SourceDataCollection).FindOne(ctx, filter)
+	findOneRes := env.Mi.Col(config.BScrapSourceCol).FindOne(ctx, filter)
 	if findOneRes.Err() != nil {
 		return nil, findOneRes.Err()
 	}
 
-	pl := &binance.CandleStickDataPayload{}
+	pl := &binance.KLineDataPayload{}
 	err = findOneRes.Decode(pl)
 	if err != nil {
 		return nil, err
 	}
 
-	csd, err := pl.ToCandleStickData().Shrink(st, et)
+	kld, err := pl.ToKLineData().Shrink(st, et)
 	if err != nil {
 		return nil, err
 	}
 
-	return csd, err
+	return kld, err
 }

@@ -22,20 +22,20 @@ type TypicalPriceData struct { // 544 + 192 * Count
 	FromDB     bool
 }
 
-func (csd *CandleStickData) ProcessCandleStickData() (*TypicalPriceData, error) {
-	if len(csd.Data) == 0 {
+func (kld *KLineData) ProcessCandleStickData() (*TypicalPriceData, error) {
+	if len(kld.Data) == 0 {
 		return nil, errors.New("no candlestick data to process")
 	}
 
 	tpd := &TypicalPriceData{}
 
-	tpd.Symbol = csd.Symbol
+	tpd.Symbol = kld.Symbol
 
-	count := float64(len(csd.Data))
-	tpd.Data = make([]typicalPrice, len(csd.Data))
+	count := float64(len(kld.Data))
+	tpd.Data = make([]typicalPrice, len(kld.Data))
 
 	selectiveAverageSquare := 0.0
-	for i, interval := range csd.Data {
+	for i, interval := range kld.Data {
 		processed, err := processCandleStick(&interval)
 		if err != nil {
 			log.Panic(fmt.Errorf("id.Data[%d]: %w", i, err))
@@ -63,7 +63,7 @@ func (csd *CandleStickData) ProcessCandleStickData() (*TypicalPriceData, error) 
 
 	tpd.Count = len(tpd.Data)
 
-	tpd.FromDB = csd.FromDB
+	tpd.FromDB = kld.FromDB
 
 	return tpd, nil
 }
@@ -74,21 +74,21 @@ type typicalPrice struct {
 	Price      float64
 }
 
-func processCandleStick(cs *CandleStick) (*typicalPrice, error) {
+func processCandleStick(kl *KLine) (*typicalPrice, error) {
 	tp := 0.0 // (low + high + close) / 3
-	temp, err := strconv.ParseFloat(cs.PriceLow, 64)
+	temp, err := strconv.ParseFloat(kl.PriceLow, 64)
 	if err != nil {
 		return nil, fmt.Errorf("i.PriceLow: %w", err)
 	}
 	tp += temp
 
-	temp, err = strconv.ParseFloat(cs.PriceHigh, 64)
+	temp, err = strconv.ParseFloat(kl.PriceHigh, 64)
 	if err != nil {
 		return nil, fmt.Errorf("i.PriceHigh: %w", err)
 	}
 	tp += temp
 
-	temp, err = strconv.ParseFloat(cs.PriceClose, 64)
+	temp, err = strconv.ParseFloat(kl.PriceClose, 64)
 	if err != nil {
 		return nil, fmt.Errorf("i.PriceClose: %w", err)
 	}
@@ -96,8 +96,8 @@ func processCandleStick(cs *CandleStick) (*typicalPrice, error) {
 	tp /= 3.0
 
 	return &typicalPrice{
-		TradeStart: cs.StartTime,
-		TradeEnd:   cs.EndTime,
+		TradeStart: kl.StartTime,
+		TradeEnd:   kl.EndTime,
 		Price:      tp,
 	}, nil
 }

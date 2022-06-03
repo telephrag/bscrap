@@ -19,7 +19,7 @@ func (env *Env) Store(next http.Handler) http.Handler {
 			return
 		}
 
-		if env.RData == nil {
+		if env.RelData == nil {
 			util.HttpErrWriter(
 				rw,
 				errors.New("RelationData was expected, none received"),
@@ -27,34 +27,34 @@ func (env *Env) Store(next http.Handler) http.Handler {
 			return
 		}
 
-		rd, err := env.Mi.StoreRelationData(r.Context(), env.RData)
+		rd, err := env.Mi.StoreRelationData(r.Context(), env.RelData)
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 			return
 		}
 
 		// may overwrite csData
-		if !env.CSDataA.FromDB {
-			pl, err := env.Mi.StoreCandleStickData(r.Context(), env.CSDataA)
+		if !env.KLDataA.FromDB {
+			pl, err := env.Mi.StoreKLineData(r.Context(), env.KLDataA)
 			if err != nil {
 				util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 				return
 			}
-			env.CSDataA.ID = pl.ID
+			env.KLDataA.ID = pl.ID
 		}
-		rd.RawDataAID = env.CSDataA.ID
+		rd.RawDataAID = env.KLDataA.ID
 
-		if !env.CSDataB.FromDB {
-			pl, err := env.Mi.StoreCandleStickData(r.Context(), env.CSDataB)
+		if !env.KLDataB.FromDB {
+			pl, err := env.Mi.StoreKLineData(r.Context(), env.KLDataB)
 			if err != nil {
 				util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 				return
 			}
-			env.CSDataB.ID = pl.ID
+			env.KLDataB.ID = pl.ID
 		}
-		rd.RawDataBID = env.CSDataB.ID
+		rd.RawDataBID = env.KLDataB.ID
 
-		env.RDataPayload = rd
+		env.RelDataPayload = rd
 		next.ServeHTTP(rw, r)
 	})
 }

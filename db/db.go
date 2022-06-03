@@ -32,12 +32,12 @@ func ConnectMongo(uri string) (*MongoInstance, error) {
 		Options: options.Index().SetExpireAfterSeconds(0),
 	}
 
-	_, err = mi.Col(config.ResultsCol).Indexes().CreateOne(context.TODO(), index)
+	_, err = mi.Col(config.BScrapResCol).Indexes().CreateOne(context.TODO(), index)
 	if err != nil {
 		return nil, err
 	}
 
-	_, err = mi.Col(config.SourceDataCollection).Indexes().CreateOne(context.TODO(), index)
+	_, err = mi.Col(config.BScrapSourceCol).Indexes().CreateOne(context.TODO(), index)
 	if err != nil {
 		return nil, err
 	}

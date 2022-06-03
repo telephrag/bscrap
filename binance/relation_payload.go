@@ -47,6 +47,6 @@ func NewRelationDataPayload(rd *RelationData) *RelationDataPayload {
 		StartTime:   rd.First.TradeStart,
 		EndTime:     rd.First.TradeEnd,
 		Count:       rd.First.Count,
-		Expire:      primitive.NewDateTimeFromTime(time.Now().Add(config.RecordExpirationTime).UTC()),
+		Expire:      primitive.NewDateTimeFromTime(time.Now().Add(config.RecordLifeTime).UTC()),
 	}
 }

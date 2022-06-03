@@ -28,7 +28,7 @@ func main() {
 			bscrap_srv.Run(bScrapEnv),
 		)
 		if err != nil {
-			panic(err)
+			log.Panic(err)
 		}
 	}()
 

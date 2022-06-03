@@ -11,7 +11,7 @@ func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.Rela
 
 	pl := binance.NewRelationDataPayload(rd)
 
-	collection := mi.Col(config.ResultsCol)
+	collection := mi.Col(config.BScrapResCol)
 
 	ior, err := collection.InsertOne(ctx, pl)
 	if err != nil {
@@ -26,14 +26,14 @@ func (mi *MongoInstance) StoreRelationData(ctx context.Context, rd *binance.Rela
 	return pl, nil
 }
 
-func (mi *MongoInstance) StoreCandleStickData(
+func (mi *MongoInstance) StoreKLineData(
 	ctx context.Context,
-	csd *binance.CandleStickData,
-) (*binance.CandleStickDataPayload, error) {
+	kld *binance.KLineData,
+) (*binance.KLineDataPayload, error) {
 
-	pl := binance.NewCandleStickDataPayload(csd)
+	pl := binance.NewCandleStickDataPayload(kld)
 
-	collection := mi.Col(config.SourceDataCollection)
+	collection := mi.Col(config.BScrapSourceCol)
 
 	ior, err := collection.InsertOne(ctx, pl)
 	if err != nil {

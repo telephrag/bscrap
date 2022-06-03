@@ -26,23 +26,23 @@ func (env *Env) GetDataAndProcess(next http.Handler) http.Handler {
 		startTime := env.Argv.Get("startTime")
 		endTime := env.Argv.Get("endTime")
 
-		candleStickDataA, err := env.GetCSD(r.Context(), symbolA, interval, limit, startTime, endTime)
+		klineDataA, err := env.GetKLD(r.Context(), symbolA, interval, limit, startTime, endTime)
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 			return
 		}
-		processedDataA, err := candleStickDataA.ProcessCandleStickData()
+		processedDataA, err := klineDataA.ProcessCandleStickData()
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusBadRequest)
 			return
 		}
 
-		candleStickDataB, err := env.GetCSD(r.Context(), symbolB, interval, limit, startTime, endTime)
+		klineDataB, err := env.GetKLD(r.Context(), symbolB, interval, limit, startTime, endTime)
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusInternalServerError)
 			return
 		}
-		processedDataB, err := candleStickDataB.ProcessCandleStickData()
+		processedDataB, err := klineDataB.ProcessCandleStickData()
 		if err != nil {
 			util.HttpErrWriter(rw, err, http.StatusBadRequest)
 			return
@@ -54,9 +54,9 @@ func (env *Env) GetDataAndProcess(next http.Handler) http.Handler {
 			return
 		}
 
-		env.CSDataA = candleStickDataA
-		env.CSDataB = candleStickDataB
-		env.RData = rd
+		env.KLDataA = klineDataA
+		env.KLDataB = klineDataB
+		env.RelData = rd
 		next.ServeHTTP(rw, r)
 	})
 }

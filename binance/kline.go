@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 )
 
-type CandleStick struct {
+type KLine struct {
 	StartTime  int64
 	PriceOpen  string
 	PriceHigh  string
@@ -13,15 +13,15 @@ type CandleStick struct {
 	EndTime    int64
 }
 
-func (cs *CandleStick) UnmarshalJSON(rawData []byte) error {
+func (kl *KLine) UnmarshalJSON(rawData []byte) error {
 	data := []interface{}{
-		&cs.StartTime,
-		&cs.PriceOpen,
-		&cs.PriceHigh,
-		&cs.PriceLow,
-		&cs.PriceClose,
+		&kl.StartTime,
+		&kl.PriceOpen,
+		&kl.PriceHigh,
+		&kl.PriceLow,
+		&kl.PriceClose,
 		nil,
-		&cs.EndTime,
+		&kl.EndTime,
 	}
 
 	if err := json.Unmarshal(rawData, &data); err != nil {

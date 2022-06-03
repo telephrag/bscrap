@@ -8,6 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 func (env *Env) Retrieve(next http.Handler) http.Handler {
@@ -30,14 +33,89 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 		}
 
 		var data struct {
-			Processed *binance.RelationDataPayload    `json:"processed,omitempty"`
-			RawA      *binance.CandleStickDataPayload `json:"raw_a,omitempty"`
-			RawB      *binance.CandleStickDataPayload `json:"raw_b,omitempty"`
+			Processed *binance.RelationDataPayload `json:"processed,omitempty"`
+			RawA      *binance.KLineData           `json:"raw_a,omitempty"`
+			RawB      *binance.KLineData           `json:"raw_b,omitempty"`
+		}
+
+		rawA := argv.Get("rawA")
+		if rawA != "" {
+			res, err := env.Mi.ReadOneByID(r.Context(), config.BScrapSourceCol, rawA)
+			if err != nil {
+				var code int = http.StatusInternalServerError
+				switch err {
+				case primitive.ErrInvalidHex:
+					code = http.StatusBadRequest
+				case mongo.ErrNoDocuments:
+					code = http.StatusBadRequest
+				}
+
+				util.HttpErrWriter(
+					rw,
+					fmt.Errorf("%w: invalid id was given", err),
+					code,
+				)
+				return
+			}
+
+			cs := &binance.KLineDataPayload{}
+			err = res.Decode(cs)
+			if err != nil {
+				var code int = http.StatusInternalServerError
+				switch err {
+				case primitive.ErrInvalidHex:
+					code = http.StatusBadRequest
+				case mongo.ErrNoDocuments:
+					code = http.StatusBadRequest
+				}
+
+				util.HttpErrWriter(
+					rw,
+					fmt.Errorf("%w: invalid id was given", err),
+					code,
+				)
+				return
+			}
+			data.RawA = cs.ToKLineData()
+		}
+
+		rawB := argv.Get("rawB")
+		if rawB != "" {
+			res, err := env.Mi.ReadOneByID(r.Context(), config.BScrapSourceCol, rawB)
+			if err != nil {
+				util.HttpErrWriter(
+					rw,
+					fmt.Errorf("%w: invalid id was given", err),
+					http.StatusInternalServerError,
+				)
+				return
+			}
+
+			cs := &binance.KLineDataPayload{}
+			err = res.Decode(cs)
+			if err != nil {
+				var code int = http.StatusInternalServerError
+				switch err {
+				case primitive.ErrInvalidHex:
+					code = http.StatusBadRequest
+				case mongo.ErrNoDocuments:
+					code = http.StatusBadRequest
+				}
+
+				util.HttpErrWriter(
+					rw,
+					fmt.Errorf("%w: invalid id was given", err),
+					code,
+				)
+				return
+			}
+
+			data.RawB = cs.ToKLineData()
 		}
 
 		proc := argv.Get("processed")
 		if proc != "" {
-			res, err := env.Mi.ReadOneByID(r.Context(), config.ResultsCol, proc)
+			res, err := env.Mi.ReadOneByID(r.Context(), config.BScrapResCol, proc)
 			if err != nil {
 				util.HttpErrWriter(
 					rw,
@@ -58,56 +136,24 @@ func (env *Env) Retrieve(next http.Handler) http.Handler {
 				return
 			}
 			data.Processed = rd
-		}
 
-		rawA := argv.Get("rawA")
-		if rawA != "" {
-			res, err := env.Mi.ReadOneByID(r.Context(), config.SourceDataCollection, rawA)
+			data.RawA, err = data.RawA.ShrinkSelf(data.Processed.StartTime, data.Processed.EndTime)
 			if err != nil {
 				util.HttpErrWriter(
 					rw,
 					fmt.Errorf("%w: invalid id was given", err),
 					http.StatusInternalServerError,
 				)
-				return
 			}
 
-			cs := &binance.CandleStickDataPayload{}
-			err = res.Decode(cs)
+			data.RawB, err = data.RawB.ShrinkSelf(data.Processed.StartTime, data.Processed.EndTime)
 			if err != nil {
 				util.HttpErrWriter(
 					rw,
 					fmt.Errorf("%w: invalid id was given", err),
 					http.StatusInternalServerError,
 				)
-				return
 			}
-			data.RawA = cs
-		}
-
-		rawB := argv.Get("rawB")
-		if rawB != "" {
-			res, err := env.Mi.ReadOneByID(r.Context(), config.SourceDataCollection, rawB)
-			if err != nil {
-				util.HttpErrWriter(
-					rw,
-					fmt.Errorf("%w: invalid id was given", err),
-					http.StatusInternalServerError,
-				)
-				return
-			}
-
-			cs := &binance.CandleStickDataPayload{}
-			err = res.Decode(cs)
-			if err != nil {
-				util.HttpErrWriter(
-					rw,
-					fmt.Errorf("%w: invalid id was given", err),
-					http.StatusInternalServerError,
-				)
-				return
-			}
-			data.RawB = cs
 		}
 
 		content, err := json.Marshal(data)
