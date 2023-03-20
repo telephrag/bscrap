@@ -11,9 +11,28 @@ import (
 	"syscall"
 )
 
-// https://api.binance.com/api/v3/klines?symbol=ZECUSDT&interval=1w&limit=52&startTime=1621728000000&endTime=1653264000000
+func getLogFile(path string) *os.File {
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		_, err := os.Create(path)
+		if err != nil {
+			log.Fatal(err)
+		}
+		f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+		if err != nil {
+			log.Fatal(err)
+		}
+		return f
+	}
+	return f
+}
 
 func main() {
+
+	logFile := getLogFile("/data/log.log")
+	defer logFile.Close()
+	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
+	log.SetOutput(logFile)
 
 	mi, err := db.ConnectMongo(config.DBUri)
 	if err != nil {
@@ -21,10 +40,12 @@ func main() {
 		return
 	}
 
+	log.Println("application startup")
+
 	bScrapEnv := &bscrap_srv.Env{Mi: mi}
 	go func() {
 		err := http.ListenAndServe(
-			"localhost:8080",
+			":8080",
 			bscrap_srv.Run(bScrapEnv),
 		)
 		if err != nil {
@@ -35,4 +56,6 @@ func main() {
 	interupt := make(chan os.Signal, 1)
 	signal.Notify(interupt, syscall.SIGTERM, syscall.SIGINT)
 	<-interupt
+
+	log.Print("application shutdown\n\n")
 }

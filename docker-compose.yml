@@ -1,0 +1,23 @@
+
+version: 0.0.1
+services:
+  bscrap:
+    container_name: bscrap_c
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bscrap:latest
+    ports: 
+      - 8080:8080
+    volumes:
+      - /home/trofchik/volumes/bscrap_volume/service:/data
+    depends_on: 
+      - mongo
+
+  mongo:
+    image: mongo:jammy
+    container_name: bscrap_mongo_c
+    volumes:
+      - /home/trofchik/volumes/bscrap_volume/mongo:/data
+    ports:
+      - 27017:27017
